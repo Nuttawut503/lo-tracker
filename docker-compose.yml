@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  db:
+    image: mysql:8.0.23
+    restart: always
+    volumes:
+    - ./initdb-scripts:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+  db-monitor:
+    image: phpmyadmin/phpmyadmin:5.1.0
+    restart: always
+    ports:
+    - published: 8000
+      target: 80
+    environment:
+      PMA_HOSTS: db
+      PMA_USER: root
+      PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+  backend:
+    image: golang
+    tty: true
+    volumes:
+    - ./backend:/go/src/app
+    environment:
+      dbpath: ${MYSQL_DATABASE}
+      dbpassword: ${MYSQL_ROOT_PASSWORD}
+#  frontend:
+#    image: cirrusci/flutter:2.0.4
