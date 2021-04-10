@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3'
 services:
   db:
     image: mysql:8.0.23
@@ -8,16 +8,19 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
+    networks:
+    - db_network
   db-monitor:
     image: phpmyadmin/phpmyadmin:5.1.0
     restart: always
     ports:
-    - published: 8000
-      target: 80
+    - "8000:80"
     environment:
       PMA_HOSTS: db
       PMA_USER: root
       PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    networks:
+    - db_network
   backend:
     image: golang
     tty: true
@@ -26,5 +29,16 @@ services:
     environment:
       dbpath: ${MYSQL_DATABASE}
       dbpassword: ${MYSQL_ROOT_PASSWORD}
-#  frontend:
-#    image: cirrusci/flutter:2.0.4
+    networks:
+    - api_network
+    - db_network
+  frontend:
+    build: .
+    tty: true
+    volumes:
+    - ./frontend:/root/lo_tracker
+    networks:
+    - api_network
+networks:
+  api_network: {}
+  db_network: {}
